@@ -1,4 +1,4 @@
-import pygame, sys, os, random
+import pygame, sys, os, random, json
 
 pygame.init()
 
@@ -21,24 +21,24 @@ font_big = pygame.font.Font(None,48)
 player = pygame.Rect(50,50,40,60)
 speed = 5
 
-# Sauvegarde
-SAVE_FILE = "savegame.txt"
+# ---- Sauvegarde JSON ----
+SAVE_FILE = "save_game.json"
 def load_game(): 
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE,"r") as f:
-            line=f.readline().strip()
-            if line:
-                return [int(x) for x in line.split("|")]
-    return [0,0,0]
-def save_game(salle, pts, stars):
+            try:
+                data = json.load(f)
+                return data.get("current_salle",0), data.get("points",0), data.get("total_stars",0)
+            except:
+                return 0,0,0
+    return 0,0,0
+
+def save_game(current_salle, points, total_stars):
+    data = {"current_salle":current_salle,"points":points,"total_stars":total_stars}
     with open(SAVE_FILE,"w") as f:
-        f.write(f"{salle}|{pts}|{stars}")
+        json.dump(data,f)
 
 current_salle, points, total_stars = load_game()
-
-# ---- Charger image trophée ----
-trophy_img = pygame.image.load("trophy.png")  # Assure-toi d'avoir trophy.png dans le dossier
-trophy_img = pygame.transform.scale(trophy_img,(200,200))
 
 # Fonctions utilitaires
 def draw_button(rect, text, mouse_pos):
@@ -158,6 +158,18 @@ while True:
                 pygame.draw.rect(screen,STAR_COLOR,star)
                 if player.colliderect(star): total_stars+=1; points+=5; salle["stars"].remove(star); message="+1 étoile +5 pts"
 
+            # Questions artefacts
+            for i, rect in enumerate(salle["artefacts"]):
+                if player.colliderect(rect) and not salle["collected"][i]:
+                    q = salle["questions"][i]
+                    y = 100
+                    screen.blit(font.render(q["question"], True, TEXT_COLOR), (50, y))
+                    y += 40
+                    for c in q["choix"]:
+                        screen.blit(font.render(c, True, TEXT_COLOR), (70, y))
+                        y += 30
+                    screen.blit(font.render("Appuie sur A, B ou C", True, TEXT_COLOR), (50, y + 10))
+
             # Vérifier fin salle
             if all(salle["collected"]) and not game_over:
                 message="Salle complète ! Appuie sur Entrée pour passer à la suivante."
@@ -175,10 +187,9 @@ while True:
 
     # ---- Écran final ----
     elif state=="final":
-        screen.blit(font.render("Bravo, cher explorateur !",True,TEXT_COLOR),(200,150))
-        screen.blit(font.render("Voici ton cadeau :",True,TEXT_COLOR),(200,200))
-        screen.blit(trophy_img,(WIDTH//2-100,250))
-        restart_button=pygame.Rect(WIDTH//2-100,500,200,50)
+        screen.blit(font.render("Félicitation, cher explorateur !",True,TEXT_COLOR),(150,200))
+        screen.blit(font.render("Vous venez de remporter votre trophée !",True,TEXT_COLOR),(100,250))
+        restart_button=pygame.Rect(WIDTH//2-100,400,200,50)
         draw_button(restart_button,"Recommencer",mouse_pos)
 
     pygame.display.flip()
