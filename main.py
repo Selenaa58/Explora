@@ -9,7 +9,7 @@ pygame.display.set_caption("Bienvenue sur Explora")
 clock = pygame.time.Clock()
 
 # Couleurs
-BG, PLAYER_COLOR, ARTIFACT_COLOR = (50,30,20), (112, 66, 20), (255,215,0)
+PLAYER_COLOR, ARTIFACT_COLOR = (112, 66, 20), (255,215,0)
 ARTIFACT_HIGHLIGHT, OBSTACLE_COLOR, STAR_COLOR = (0,255,255), (100,100,100), (255,250,255)
 TEXT_COLOR, BUTTON_COLOR, BUTTON_HOVER = (255,255,255), (0,150,0), (0,200,0)
 
@@ -40,7 +40,24 @@ def save_game(current_salle, points, total_stars):
 
 current_salle, points, total_stars = load_game()
 
-# Fonctions utilitaires
+# ---- Charger les fonds ----
+def load_background(name):
+    try:
+        img = pygame.image.load(os.path.join("images", name)).convert()
+        return pygame.transform.scale(img, (WIDTH, HEIGHT))
+    except pygame.error:
+        s = pygame.Surface((WIDTH, HEIGHT))
+        s.fill((50,30,20))
+        return s
+
+backgrounds = {
+    "welcome": load_background("fond_temple.jpg"),
+    "rules": load_background("fond_regles.jpg"),
+    "game": load_background("fond_salle.jpg"),
+    "final": load_background("fond_final.jpg")
+}
+
+# ---- Fonctions utilitaires ----
 def draw_button(rect, text, mouse_pos):
     color = BUTTON_HOVER if rect.collidepoint(mouse_pos) else BUTTON_COLOR
     pygame.draw.rect(screen,color,rect)
@@ -67,13 +84,14 @@ salles = [
 
 # ---- Variables ----
 state = "welcome"  # welcome → rules → game → final
-game_over = False
+hit = False
 message=""
+resume_button = None
 
 # ---- Boucle principale ----
 while True:
     mouse_pos = pygame.mouse.get_pos()
-    screen.fill(BG)
+    screen.blit(backgrounds[state], (0,0))  # <-- fond dynamique selon l'état
 
     # ---- Événements ----
     for event in pygame.event.get():
@@ -88,7 +106,9 @@ while True:
             elif state=="final" and restart_button.collidepoint(event.pos):
                 current_salle=0; points=0; total_stars=0
                 state="welcome"; player.topleft=(50,50)
-        if event.type==pygame.KEYDOWN and state=="game" and not game_over:
+            elif hit and resume_button and resume_button.collidepoint(event.pos):
+                hit=False; message=""; player.topleft=(50,50)
+        if event.type==pygame.KEYDOWN and state=="game" and not hit:
             salle=salles[current_salle]
             for i, rect in enumerate(salle["artefacts"]):
                 if player.colliderect(rect) and not salle["collected"][i]:
@@ -128,8 +148,7 @@ while True:
     # ---- Écran jeu ----
     elif state=="game":
         salle=salles[current_salle]
-        if not game_over:
-            # Déplacement joueur
+        if not hit:
             keys=pygame.key.get_pressed(); dx=dy=0
             if keys[pygame.K_LEFT]: dx=-speed
             if keys[pygame.K_RIGHT]: dx=speed
@@ -146,7 +165,7 @@ while True:
                 if obs["rect"].top<=0 or obs["rect"].bottom>=HEIGHT: obs["dir"][1]*=-1
                 pygame.draw.rect(screen,OBSTACLE_COLOR,obs["rect"])
                 if player.colliderect(obs["rect"]):
-                    game_over=True; message="Vous avez été touché !"
+                    hit=True; message="Vous avez été touché !"
 
             # Artefacts
             for i,rect in enumerate(salle["artefacts"]):
@@ -170,24 +189,31 @@ while True:
                         y += 30
                     screen.blit(font.render("Appuie sur A, B ou C", True, TEXT_COLOR), (50, y + 10))
 
-            # Vérifier fin salle
-            if all(salle["collected"]) and not game_over:
+            if all(salle["collected"]) and not hit:
                 message="Salle complète ! Appuie sur Entrée pour passer à la suivante."
                 if keys[pygame.K_RETURN]:
                     current_salle+=1
                     if current_salle>=len(salles): state="final"
                     else: player.topleft=(50,50); message=""
 
-            # Joueur
             pygame.draw.rect(screen,PLAYER_COLOR,player)
+        else:
+            s = pygame.Surface((WIDTH, HEIGHT))
+            s.set_alpha(180)
+            s.fill((0,0,0))
+            screen.blit(s, (0,0))
+            screen.blit(font_big.render("Vous avez été touché !", True, (255,0,0)), (200, 200))
+            resume_button = pygame.Rect(WIDTH//2 - 100, 300, 200, 50)
+            draw_button(resume_button, "Reprendre ?", mouse_pos)
 
-        # Texte et boutons
+        # Texte info
         screen.blit(font.render(message,True,TEXT_COLOR),(20,20))
         screen.blit(font.render(f"Points: {points} | Étoiles: {total_stars}",True,TEXT_COLOR),(20,50))
 
     # ---- Écran final ----
     elif state=="final":
-        screen.blit(font.render("Félicitation, cher explorateur !",True,TEXT_COLOR),(150,200))
+        screen.blit(backgrounds["final"], (0,0))
+        screen.blit(font.render("Félicitations, cher explorateur !",True,TEXT_COLOR),(150,200))
         screen.blit(font.render("Vous venez de remporter votre trophée !",True,TEXT_COLOR),(100,250))
         restart_button=pygame.Rect(WIDTH//2-100,400,200,50)
         draw_button(restart_button,"Recommencer",mouse_pos)
