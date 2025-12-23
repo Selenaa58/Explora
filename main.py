@@ -9,8 +9,8 @@ pygame.display.set_caption("Bienvenue sur Explora")
 clock = pygame.time.Clock()
 
 # Couleurs
-BG, PLAYER_COLOR, ARTIFACT_COLOR = (50,30,20), (50,100,200), (255,215,0)
-ARTIFACT_HIGHLIGHT, OBSTACLE_COLOR, STAR_COLOR = (255,255,0), (100,100,100), (255,255,255)
+BG, PLAYER_COLOR, ARTIFACT_COLOR = (50,30,20), (112, 66, 20), (255,215,0)
+ARTIFACT_HIGHLIGHT, OBSTACLE_COLOR, STAR_COLOR = (0,255,255), (100,100,100), (255,250,255)
 TEXT_COLOR, BUTTON_COLOR, BUTTON_HOVER = (255,255,255), (0,150,0), (0,200,0)
 
 # Police
@@ -99,8 +99,8 @@ while True:
 
     # ---- Écran de bienvenue ----
     if state=="welcome":
-        welcome_lines = ["Bienvenue, explorateur.",
-                         "Chaque porte que tu franchiras cache un secret…",
+        welcome_lines = ["Bienvenue, cher explorateur.",
+                         "Chaque point doré que tu touches renferme un mystère…",
                          "Sauras-tu résoudre les énigmes qui t’attendent ?"]
         y_start=150
         for i,line in enumerate(welcome_lines):
@@ -112,11 +112,11 @@ while True:
 
     # ---- Écran règles ----
     elif state=="rules":
-        rules_lines = ["Règles mystérieuses :",
+        rules_lines = ["Voici les règles du jeu :",
                        "- Déplace-toi avec les flèches pour explorer les salles.",
                        "- Collecte les étoiles pour gagner des points.",
                        "- Résous les énigmes en appuyant sur A, B ou C.",
-                       "- Évite les obstacles mobiles !"]
+                       "- Évite les obstacles !"]
         y_start=100
         for i,line in enumerate(rules_lines):
             txt_surf=font.render(line,True,TEXT_COLOR)
