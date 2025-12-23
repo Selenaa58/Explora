@@ -1,6 +1,11 @@
 import pygame, sys, os, random, json
 
 pygame.init()
+pygame.mixer.init()
+
+pygame.mixer.music.load("musique_fond.mp3")
+pygame.mixer.music.play(-1)
+
 
 # ---- Configuration ----
 WIDTH, HEIGHT = 800, 600
@@ -122,7 +127,7 @@ while True:
         welcome_lines = ["Bienvenue, cher explorateur.",
                          "Chaque point doré que tu touches renferme un mystère…",
                          "Sauras-tu résoudre les énigmes qui t’attendent ?"]
-        y_start=150
+        y_start=80
         for i,line in enumerate(welcome_lines):
             txt_surf=font.render(line,True,TEXT_COLOR)
             txt_rect=txt_surf.get_rect(center=(WIDTH//2, y_start+i*40))
@@ -137,7 +142,7 @@ while True:
                        "- Collecte les étoiles pour gagner des points.",
                        "- Résous les énigmes en appuyant sur A, B ou C.",
                        "- Évite les obstacles !"]
-        y_start=100
+        y_start=150
         for i,line in enumerate(rules_lines):
             txt_surf=font.render(line,True,TEXT_COLOR)
             txt_rect=txt_surf.get_rect(topleft=(50, y_start+i*40))
@@ -214,7 +219,7 @@ while True:
     elif state=="final":
         screen.blit(backgrounds["final"], (0,0))
         screen.blit(font.render("Félicitations, cher explorateur !",True,TEXT_COLOR),(150,200))
-        screen.blit(font.render("Vous venez de remporter votre trophée !",True,TEXT_COLOR),(100,250))
+        screen.blit(font.render("Vous venez de remporter la partie !",True,TEXT_COLOR),(100,250))
         restart_button=pygame.Rect(WIDTH//2-100,400,200,50)
         draw_button(restart_button,"Recommencer",mouse_pos)
 
