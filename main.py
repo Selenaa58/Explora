@@ -94,7 +94,7 @@ salles = [
     }
 ]
 
-state = "welcome"  # welcome → rules → game → final
+state = "welcome"  
 hit = False
 message = ""
 resume_button = None
