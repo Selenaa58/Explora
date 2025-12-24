@@ -19,7 +19,7 @@ ARTIFACT_COLOR = (255, 215, 0)
 ARTIFACT_HIGHLIGHT = (0, 255, 255)
 OBSTACLE_COLOR = (100, 100, 100)
 STAR_COLOR = (255, 250, 255)
-TEXT_COLOR = (255, 255, 255)
+TEXT_COLOR = (0, 0, 0)
 BUTTON_COLOR = (0, 150, 0)
 BUTTON_HOVER = (0, 200, 0)
 
@@ -59,7 +59,7 @@ def load_background(name):
         return s
 
 backgrounds = {
-    "welcome": load_background("fond_temple.jpg"),
+    "welcome": load_background("accueil.jpg"),
     "rules": load_background("fond_regles.jpg"),
     "game": load_background("fond_salle.jpg"),
     "final": load_background("fond_final.jpg")
@@ -143,7 +143,7 @@ while True:
         lines = ["Bienvenue, cher explorateur.",
                  "Chaque point doré que tu touches renferme un mystère…",
                  "Sauras-tu résoudre les énigmes qui t’attendent ?"]
-        y_start = 80
+        y_start = 210
         for i, line in enumerate(lines):
             surf = font.render(line, True, TEXT_COLOR)
             rect = surf.get_rect(center=(WIDTH//2, y_start + i*40))
@@ -245,7 +245,7 @@ while True:
     elif state == "final":
         screen.blit(backgrounds["final"], (0, 0))
         screen.blit(font.render("Félicitations, cher explorateur !", True, TEXT_COLOR), (150, 200))
-        screen.blit(font.render("Vous venez de remporter la partie !", True, TEXT_COLOR), (100, 250))
+        screen.blit(font.render("Tu viens de remporter la partie !", True, TEXT_COLOR), (100, 250))
         restart_button = pygame.Rect(WIDTH//2 - 100, 400, 200, 50)
         draw_button(restart_button, "Recommencer", mouse_pos)
 
