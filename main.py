@@ -3,17 +3,17 @@ import pygame, sys, os, random, json
 pygame.init()
 pygame.mixer.init()
 
-# Music
+# ---- Musique ----
 pygame.mixer.music.load("musique_fond.mp3")
 pygame.mixer.music.play(-1)
 
-
+# ---- Fenêtre ----
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Bienvenue sur Explora")
 clock = pygame.time.Clock()
 
-# Colors
+# ---- Couleurs ----
 PLAYER_COLOR = (112, 66, 20)
 ARTIFACT_COLOR = (255, 215, 0)
 ARTIFACT_HIGHLIGHT = (0, 255, 255)
@@ -23,16 +23,16 @@ TEXT_COLOR = (0, 0, 0)
 BUTTON_COLOR = (0, 150, 0)
 BUTTON_HOVER = (0, 200, 0)
 
-# Police
+# ---- Police ----
 font = pygame.font.Font(None, 32)
 font_big = pygame.font.Font(None, 48)
 
-# Player
+# ---- Joueur ----
 player = pygame.Rect(50, 50, 40, 60)
 speed = 5
 
+# ---- Sauvegarde ----
 SAVE_FILE = "save_game.json"
-
 def load_game():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE, "r") as f:
@@ -49,6 +49,8 @@ def save_game(current_salle, points, total_stars):
         json.dump(data, f)
 
 current_salle, points, total_stars = load_game()
+
+# ---- Chargement images ----
 def load_background(name):
     try:
         img = pygame.image.load(os.path.join("images", name)).convert()
@@ -62,8 +64,10 @@ backgrounds = {
     "welcome": load_background("accueil.jpg"),
     "rules": load_background("fond_regles.jpg"),
     "game": load_background("fond_salle.jpg"),
-    "final": load_background("fond_final.jpg")
+    "final": load_background("fond_last.jpg")  # <- modifié pour la dernière image
 }
+
+# ---- Fonctions utilitaires ----
 def draw_button(rect, text, mouse_pos):
     color = BUTTON_HOVER if rect.collidepoint(mouse_pos) else BUTTON_COLOR
     pygame.draw.rect(screen, color, rect)
@@ -72,7 +76,7 @@ def draw_button(rect, text, mouse_pos):
 def generate_stars(n):
     return [pygame.Rect(random.randint(50, WIDTH - 50), random.randint(50, HEIGHT - 50), 20, 20) for _ in range(n)]
 
-# Définition des salles
+# ---- Salles ----
 salles = [
     {
         "artefacts": [pygame.Rect(600, 100, 40, 40), pygame.Rect(300, 400, 40, 40)],
@@ -94,16 +98,18 @@ salles = [
     }
 ]
 
-state = "welcome"  
+# ---- Variables de jeu ----
+state = "welcome"
 hit = False
 message = ""
 resume_button = None
 
+# ---- Boucle principale ----
 while True:
     mouse_pos = pygame.mouse.get_pos()
     screen.blit(backgrounds[state], (0, 0))
 
-    # Events
+    # ---- Gestion événements ----
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             save_game(current_salle, points, total_stars)
@@ -116,11 +122,17 @@ while True:
             elif state == "rules" and start_button.collidepoint(event.pos):
                 state = "game"
             elif state == "final" and restart_button.collidepoint(event.pos):
+                # --- Réinitialisation complète ---
                 current_salle = 0
                 points = 0
                 total_stars = 0
-                state = "welcome"
                 player.topleft = (50, 50)
+                state = "welcome"
+                for salle in salles:
+                    salle["collected"] = [False] * len(salle["collected"])
+                    salle["stars"] = generate_stars(len(salle["stars"]))
+                if os.path.exists(SAVE_FILE):
+                    os.remove(SAVE_FILE)
             elif hit and resume_button and resume_button.collidepoint(event.pos):
                 hit = False
                 message = ""
@@ -138,7 +150,7 @@ while True:
                     elif event.unicode.upper() in ["A", "B", "C"]:
                         message = "Mauvaise réponse !"
 
-    # Page d'accueil
+    # ---- Écran accueil ----
     if state == "welcome":
         lines = ["Bienvenue, cher explorateur.",
                  "Chaque point doré que tu touches renferme un mystère…",
@@ -151,7 +163,7 @@ while True:
         start_button = pygame.Rect(WIDTH//2 - 100, y_start + len(lines)*40 + 20, 200, 50)
         draw_button(start_button, "Suivant", mouse_pos)
 
-    # Page des règles
+    # ---- Écran règles ----
     elif state == "rules":
         lines = ["Voici les règles du jeu :",
                  "- Déplace-toi avec les flèches pour explorer les salles.",
@@ -164,6 +176,7 @@ while True:
         start_button = pygame.Rect(WIDTH//2 - 100, 400, 200, 50)
         draw_button(start_button, "Commencer", mouse_pos)
 
+    # ---- Écran jeu ----
     elif state == "game":
         salle = salles[current_salle]
         if not hit:
@@ -241,7 +254,7 @@ while True:
         screen.blit(font.render(message, True, TEXT_COLOR), (20, 20))
         screen.blit(font.render(f"Points: {points} | Étoiles: {total_stars}", True, TEXT_COLOR), (20, 50))
 
-    # Écran final
+    # ---- Écran final ----
     elif state == "final":
         screen.blit(backgrounds["final"], (0, 0))
         screen.blit(font.render("Félicitations, cher explorateur !", True, TEXT_COLOR), (150, 200))
